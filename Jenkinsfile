@@ -9,7 +9,8 @@ pipeline {
         stage('CSI setup') {
             steps {
                withKubeConfig([credentialsId: 'mykubeconfig', serverUrl: 'https://192.168.49.2:8443']) {
-      sh 'kubectl apply -f my-kubernetes-directory'
+      sh 'kubectl apply -f my-kubernetes-directory' 
+                }
             }
         }
     }
