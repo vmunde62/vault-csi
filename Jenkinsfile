@@ -8,10 +8,8 @@ pipeline {
         }
         stage('CSI setup') {
             steps {
-                sh '''helm repo add hashicorp https://helm.releases.hashicorp.com
-helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-helm repo update
-kubectl get pods'''
+               withKubeConfig([credentialsId: 'mykubeconfig', serverUrl: 'https://192.168.49.2:8443']) {
+      sh 'kubectl apply -f my-kubernetes-directory'
             }
         }
     }
