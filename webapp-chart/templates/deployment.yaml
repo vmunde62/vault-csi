@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp-{{ .Values.nameSpace }}
+  labels:
+    {{- include "webapp-chart.labels" . | nindent 4 }}
+
+spec:
+  serviceAccountName: sa-{{ .Values.nameSpace }}
+  containers:
+    - name: {{ .Chart.Name }}
+      image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+      imagePullPolicy: {{ .Values.image.pullPolicy }}
+      volumeMounts:
+        - name: {{ .Values.VolumeMounts.appContainerVolume.name }}
+          mountPath: {{ .Values.VolumeMounts.appContainerVolume.mountPath }}
+  initContainers:
+    - name: init-{{ .Chart.Name }}
+      image: "{{ .Values.initContainerImage.repository }}:{{ .Values.initContainerImage.tag }}"  
+      volumeMounts:
+        - name: {{ .Values.VolumeMounts.appContainerVolume.name }}
+          mountPath: {{ .Values.VolumeMounts.appContainerVolume.mountPath }}
+        - name: secrets-store-inline
+          mountPath: {{ .Values.VolumeMounts.initContainerVolume.mountPath }}
+      env:
+        - name: keyfile
+          value: {{ .Values.VolumeMounts.initContainerVolume.mountPath }}/tls-key
+        - name: crtfile
+          value: {{ .Values.VolumeMounts.initContainerVolume.mountPath }}/tls-crt
+        - name: keystore_pkcs12
+          value: {{ .Values.VolumeMounts.appContainerVolume.mountPath }}/keystore.pkcs12
+        - name: keystore_jks
+          value: {{ .Values.VolumeMounts.appContainerVolume.mountPath }}/keystore.jks
+        - name: password
+          value: {{ .Values.VolumeMounts.initContainerVolume.mountPath }}/password
+      command: ["/bin/sh", "-c"]
+      args: ["-c", {{ .Values.shellCommand }}]
+  volumes:
+    - name: secrets-store-inline
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: {{ .Values.nameSpace }}-spc
+    - name: {{ .Values.VolumeMounts.appContainerVolume.name }}
+      emptyDir: {}
+        
+      
