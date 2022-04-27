@@ -33,9 +33,16 @@ pipeline {
              env.KUBE_HOST= sh( script: "scripts/kube_host.sh",
                              returnStdout: true).trim()            
                     }
-            echo "${env.TOKEN_REVIEW_JWT}"
-            echo "${env.KUBE_CA_CERT}"
-            echo "${env.KUBE_HOST}"
+                withCredentials([[$class: 'VaultTokenCredentialBinding', credentialsId: 'vault_auth', vaultAddr: 'http://0.0.0.0:8200']]) {
+            sh "vault auth enable --path=${params.cluster} kubernetes || true"
+            sh """
+                vault write auth/${params.cluster}/config \
+                token_reviewer_jwt="$TOKEN_REVIEW_JWT" \
+                kubernetes_host="$KUBE_HOST" \
+                kubernetes_ca_cert="$KUBE_CA_CERT" \
+                issuer="https://kubernetes.default.svc.cluster.local"
+                """
+                    }
                 }
             }
         }
