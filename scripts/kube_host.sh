@@ -1,0 +1,1 @@
+kubectl config view --raw --minify --flatten --output='jsonpath={.clusters[].cluster.server}'
