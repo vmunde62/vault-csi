@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.externalvault.name }}  
+spec:
+  ports:
+  - protocol: {{ .Values.externalvault.protocol}}  
+    port: {{ .Values.externalvault.port }}  
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.externalvault.name }}  
+subsets:
+  - addresses:
+      - ip: {{ .Values.externalvault.ip }}  
+    ports:
+      - port: {{ .Values.externalvault.port }}  

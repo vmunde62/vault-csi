@@ -1,4 +1,4 @@
-properties([parameters([choice(choices: 'cluster1\ncluster2\ncluster3', description: 'Choose the cluster', name: 'cluster'), choice(choices: 'ns1\nns2\nns3', description: 'Choose the namespace', name: 'nameSpace')])])
+properties([parameters([choice(choices: 'cluster-a\ncluster-b\ncluster-c', description: 'Choose the cluster', name: 'cluster'), choice(choices: 'ns1\nns2\nns3', description: 'Choose the namespace', name: 'nameSpace')])])
 
 
 pipeline {
@@ -16,7 +16,7 @@ pipeline {
             sh 'helm repo add hashicorp https://helm.releases.hashicorp.com'
             sh 'helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts'
             sh 'helm repo update'
-            sh 'helm install vault hashicorp/vault --values values.yaml || true'
+            sh 'helm install vault hashicorp/vault --values csi-helm/values.yaml || true'
             sleep(15)
             sh 'helm install csi secrets-store-csi-driver/secrets-store-csi-driver || true'
                 }
@@ -42,9 +42,23 @@ pipeline {
                 kubernetes_ca_cert="$KUBE_CA_CERT" \
                 issuer="https://kubernetes.default.svc.cluster.local"
                 """
+            sh """
+                echo -e "path \\"secret/data/keypair\\" {\\n  capabilities = [\\"read\\"]\\n}" > policy.hcl
+                vault policy write cluster-a-app policy.hcl
+                """
+            sh """
+                vault write auth/${params.cluster}/role/database-a \
+                bound_service_account_names=cluster-a-sa \
+                bound_service_account_namespaces=${params.nameSpace} \
+                policies=cluster-a-app \
+                ttl=24h
+                """
                     }
                 }
             }
+        }
+        stage('App Deploy') {
+
         }
     }
 }

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  labels:
+    app: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      name: {{ .Values.app.name }}
+      labels:
+        app: webapp
+    spec:  
+      serviceAccountName: {{ .Values.app.saName }}
+      containers:
+        - image: {{ .Values.app.image }}  
+          name: {{ .Values.app.containerName }}  
+          volumeMounts:
+          - name: jksfile
+            mountPath: {{ .Values.volumes.path }} 
+      initContainers:
+        - name: keystore
+          image: {{ .Values.init.image }}  
+          env:
+            - name: keyfile
+              value: {{ .Values.init.keyfilePath }} 
+            - name: crtfile
+              value: {{ .Values.init.certfilePath }}
+            - name: keystore_pkcs12
+              value: {{ .Values.init.pkcsPath }}
+            - name: keystore_jks
+              value: {{ .Values.init.jksPath }}
+            - name: password
+              value: {{ .Values.init.jksPassword }} 
+          command: ["/bin/sh"]
+          args: ["-c", {{ .Values.init.run}} ]
+          volumeMounts:
+          - name: secrets-store-inline   #  Mounted this volume from the csi driver. 
+            mountPath: {{ .Values.init.csiVolume }}  
+            readOnly: true
+          - name: jksfile
+            mountPath: {{ .Values.volumes.path }}   
+
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ .Values.init.spcName }} 
+        - name: jksfile
+          emptyDir: {}
