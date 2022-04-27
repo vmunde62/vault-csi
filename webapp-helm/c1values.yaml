@@ -27,7 +27,7 @@ vault:
   vaultRole: cluster1-role
   address: http://external-vault:8200
   name: vault-database-cluster-1
-  kubernetesMountPath: cluster-a
+  kubernetesMountPath: cluster1
   
 externalvault:
   name: external-vault

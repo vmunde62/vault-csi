@@ -1,4 +1,4 @@
-properties([parameters([choice(choices: 'cluster-a\ncluster-b\ncluster-c', description: 'Choose the cluster', name: 'cluster'), choice(choices: 'ns1\nns2\nns3', description: 'Choose the namespace', name: 'nameSpace')])])
+properties([parameters([choice(choices: 'cluster1\ncluster2\ncluster3', description: 'Choose the cluster', name: 'cluster'), choice(choices: 'ns1\nns2\nns3', description: 'Choose the namespace', name: 'nameSpace')])])
 
 
 pipeline {
@@ -47,8 +47,8 @@ pipeline {
                 vault policy write cluster-a-app policy.hcl
                 """
             sh """
-                vault write auth/${params.cluster}/role/database-a \
-                bound_service_account_names=cluster-a-sa \
+                vault write auth/${params.cluster}/role/cluster1-role \
+                bound_service_account_names=default \
                 bound_service_account_namespaces=${params.nameSpace} \
                 policies=cluster-a-app \
                 ttl=24h
@@ -58,7 +58,12 @@ pipeline {
             }
         }
         stage('App Deploy') {
-
+            steps {
+                withKubeConfig(clusterName: "${params.cluster}", contextName: "${params.cluster}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: 'https://192.168.58.2:8443/') {
+            sh "helm install webapp webapp-helm --values webapp-helm/c1values.yaml"
+                }
+            }
+                    
         }
     }
 }
