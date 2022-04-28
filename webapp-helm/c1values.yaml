@@ -28,6 +28,7 @@ vault:
   address: http://external-vault:8200
   name: vault-database-cluster-1
   kubernetesMountPath: cluster1
+  policyName: cluster-a-app
   
 externalvault:
   name: external-vault
@@ -35,3 +36,8 @@ externalvault:
   protocol: TCP
   ip: 192.168.58.1
 
+jenkins:
+  clusterName: cluster1
+  nameSpace: ns1
+  kserver: https://192.168.58.2:8443/
+  vaultServer: http://0.0.0.0:8200
