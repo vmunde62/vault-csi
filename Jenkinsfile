@@ -26,6 +26,7 @@ pipeline {
         stage('CSI Setup') {
             steps {
                 withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${env.nameSpace}", serverUrl: "${env.kserver}") {
+                sh 'kubectl get pods'
                 sh "kubectl create namespace ${env.nameSpace} || true"
                 sh "kubectl create sa $saName || true"
                 sh 'helm repo add hashicorp https://helm.releases.hashicorp.com'
