@@ -1,4 +1,8 @@
-
+jenkins:
+  clusterName: cluster1
+  nameSpace: ns1
+  kserver: https://192.168.58.2:8443/
+  vaultServer: http://0.0.0.0:8200
 
 app:
   name: webapp-pod-1
@@ -34,9 +38,3 @@ externalvault:
   port: 8200
   protocol: TCP
   ip: 192.168.58.1
-
-jenkins:
-  clusterName: cluster1
-  nameSpace: ns1
-  kserver: https://192.168.58.2:8443/
-  vaultServer: http://0.0.0.0:8200
