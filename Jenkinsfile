@@ -35,6 +35,7 @@ pipeline {
                 sh 'helm install vault hashicorp/vault --values csi-helm/values.yaml || true'
                 sleep(15)
                 sh 'helm install csi secrets-store-csi-driver/secrets-store-csi-driver || true'
+                sleep(10)
                 }
             }
         }
