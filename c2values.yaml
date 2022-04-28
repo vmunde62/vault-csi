@@ -16,7 +16,7 @@ init:
   jksPassword: /mnt/secrets-store/jkspass
   csiVolume: /mnt/secrets-store/
   jksfileVolume: /mnt/jksfile
-  spcName: vault-database-cluster-1
+  spcName: vault-database-cluster-2
   run: "echo starting;sleep 5;openssl pkcs12 -export -inkey $keyfile -in $crtfile -out $keystore_pkcs12 -password pass:$password;keytool -importkeystore -noprompt -srckeystore $keystore_pkcs12 -srcstoretype pkcs12 -destkeystore $keystore_jks -storepass $password -srcstorepass $password;echo end"
 
 volumes:
@@ -26,7 +26,6 @@ vault:
   secretsPath: secret/data/keypair
   vaultRole: cluster2-role
   address: http://external-vault:8200
-  name: vault-database-cluster-2
   kubernetesMountPath: cluster2
   policyName: cluster-b-app
   
@@ -37,7 +36,7 @@ externalvault:
   ip: 192.168.49.1
 
 jenkins:
-  clusterName: cluster1
+  clusterName: cluster2
   nameSpace: ns2
   kserver: https://192.168.49.2:8443/
   vaultServer: http://0.0.0.0:8200
