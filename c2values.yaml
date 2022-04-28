@@ -1,0 +1,43 @@
+
+
+app:
+  name: webapp-pod-1
+  saName: default
+  image: jweissig/app:0.0.1
+  containerName: webapp-cluster-1
+  path: /mnt/jksfile
+
+init:
+  image: openjdk:11-jdk
+  keyfilePath: /mnt/secrets-store/tls-key
+  certfilePath: /mnt/secrets-store/tls-crt
+  pkcsPath: /mnt/jksfile/keystore.pkcs12
+  jksPath: /mnt/jksfile/keystore.jks
+  jksPassword: /mnt/secrets-store/jkspass
+  csiVolume: /mnt/secrets-store/
+  jksfileVolume: /mnt/jksfile
+  spcName: vault-database-cluster-1
+  run: "echo starting;sleep 5;openssl pkcs12 -export -inkey $keyfile -in $crtfile -out $keystore_pkcs12 -password pass:$password;keytool -importkeystore -noprompt -srckeystore $keystore_pkcs12 -srcstoretype pkcs12 -destkeystore $keystore_jks -storepass $password -srcstorepass $password;echo end"
+
+volumes:
+  path: /mnt/jksfile
+
+vault:
+  secretsPath: secret/data/keypair
+  vaultRole: cluster2-role
+  address: http://external-vault:8200
+  name: vault-database-cluster-2
+  kubernetesMountPath: cluster2
+  policyName: cluster-b-app
+  
+externalvault:
+  name: external-vault
+  port: 8200
+  protocol: TCP
+  ip: 192.168.49.1
+
+jenkins:
+  clusterName: cluster1
+  nameSpace: ns2
+  kserver: https://192.168.49.2:8443/
+  vaultServer: http://0.0.0.0:8200
