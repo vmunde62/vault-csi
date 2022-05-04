@@ -1,4 +1,4 @@
-properties([parameters([choice(choices: ['cluster1\ncluster2\ncluster3'], description: 'Set the cluster Name', name: 'cluster'), choice(choices: ['ns1\nns2\nns3'], description: 'Set the Namespace', name: 'nameSpace')])])
+properties([parameters([choice(choices: 'cluster1\ncluster2\ncluster3', description: 'Choose the cluster', name: 'cluster'), choice(choices: 'ns1\nns2\nns3', description: 'Choose the namespace', name: 'nameSpace')])])
 
 pipeline {
     agent any 
