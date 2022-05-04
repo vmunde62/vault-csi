@@ -25,7 +25,7 @@ pipeline {
         }
         stage('CSI Setup') {
             steps {
-                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
+                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
                 sh 'kubectl get pods'
                 sh "kubectl create namespace ${params.nameSpace} || true"
                 sh "kubectl create sa $saName || true"
@@ -41,7 +41,7 @@ pipeline {
         }
         stage('Vault Authentication') {
             steps {
-                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
+                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
                     script {
                         env.TOKEN_REVIEW_JWT = sh( script: "scripts/vault_helm_secret.sh", returnStdout: true).trim()
                         env.KUBE_CA_CERT= sh( script: "scripts/kube_ca_cert.sh", returnStdout: true).trim()
@@ -73,7 +73,7 @@ pipeline {
         }
         stage('App Deploy') {
             steps {
-                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
+                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
                     sh "helm upgrade --install webapp webapp-helm --values webapp-helm/$values_file || true"
                 }
             }
