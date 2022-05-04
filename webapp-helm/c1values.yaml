@@ -1,4 +1,8 @@
-
+jenkins:
+  clusterName: cluster1
+  nameSpace: ns1
+  kserver: https://192.168.58.2:8443/
+  vaultServer: http://0.0.0.0:8200
 
 app:
   name: webapp-pod-1
@@ -26,7 +30,6 @@ vault:
   secretsPath: secret/data/keypair
   vaultRole: cluster1-role
   address: http://external-vault:8200
-  name: vault-database-cluster-1
   kubernetesMountPath: cluster1
   policyName: cluster-a-app
   
@@ -35,9 +38,3 @@ externalvault:
   port: 8200
   protocol: TCP
   ip: 192.168.58.1
-
-jenkins:
-  clusterName: cluster1
-  nameSpace: ns1
-  kserver: https://192.168.58.2:8443/
-  vaultServer: http://0.0.0.0:8200

@@ -1,4 +1,4 @@
-properties([parameters([string(defaultValue: '<values.yaml>', description: 'Input the values file name', name: 'values_file')])])
+properties([parameters([choice(choices: ['cluster1/ncluster2/ncluster3'], description: 'Set the cluster Name', name: 'cluster'), choice(choices: ['ns1/nns2/nns3'], description: 'Set the Namespace', name: 'nameSpace')])])
 
 pipeline {
     agent any 
@@ -11,23 +11,23 @@ pipeline {
         stage('Setting Environment') {
             steps {
                 script {
-                    env.clusterName = sh( script: "cat ${params.values_file} | grep clusterName | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.nameSpace = sh( script: "cat ${params.values_file} | grep nameSpace | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.kubernetesMountPath = sh( script: "cat ${params.values_file} | grep kubernetesMountPath | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.secretsPath = sh( script: "cat ${params.values_file} | grep secretsPath | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.policyName = sh( script: "cat ${params.values_file} | grep policyName | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.vaultRole = sh( script: "cat ${params.values_file} | grep vaultRole | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.saName = sh( script: "cat ${params.values_file} | grep saName | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.kserver = sh( script: "cat ${params.values_file} | grep kserver | cut -d ' ' -f 4", returnStdout: true ).trim()
-                    env.vaultServer = sh( script: "cat ${params.values_file} | grep vaultServer | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.clusterName = "${params.cluster}"
+                    env.values_file = sh( script: "scripts/set_valuesfile.sh", returnStdout: true).trim()
+                    env.kubernetesMountPath = sh( script: "cat webapp-helm/$values_file | grep kubernetesMountPath | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.secretsPath = sh( script: "cat webapp-helm/$values_file | grep secretsPath | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.policyName = sh( script: "cat webapp-helm/$values_file | grep policyName | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.vaultRole = sh( script: "cat webapp-helm/$values_file | grep vaultRole | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.saName = sh( script: "cat webapp-helm/$values_file | grep saName | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.kserver = sh( script: "cat webapp-helm/$values_file | grep kserver | cut -d ' ' -f 4", returnStdout: true ).trim()
+                    env.vaultServer = sh( script: "cat webapp-helm/$values_file | grep vaultServer | cut -d ' ' -f 4", returnStdout: true ).trim()
                 }
             }
         }
         stage('CSI Setup') {
             steps {
-                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${env.nameSpace}", serverUrl: "${env.kserver}") {
+                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
                 sh 'kubectl get pods'
-                sh "kubectl create namespace ${env.nameSpace} || true"
+                sh "kubectl create namespace ${params.nameSpace} || true"
                 sh "kubectl create sa $saName || true"
                 sh 'helm repo add hashicorp https://helm.releases.hashicorp.com'
                 sh 'helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts'
@@ -41,7 +41,7 @@ pipeline {
         }
         stage('Vault Authentication') {
             steps {
-                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${env.nameSpace}", serverUrl: "${env.kserver}") {
+                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
                     script {
                         env.TOKEN_REVIEW_JWT = sh( script: "scripts/vault_helm_secret.sh", returnStdout: true).trim()
                         env.KUBE_CA_CERT= sh( script: "scripts/kube_ca_cert.sh", returnStdout: true).trim()
@@ -73,8 +73,8 @@ pipeline {
         }
         stage('App Deploy') {
             steps {
-                withKubeConfig(clusterName: "${env.clusterName}", contextName: "${env.clusterName}", credentialsId: 'kubeconfig', namespace: "${env.nameSpace}", serverUrl: "${env.kserver}") {
-                    sh "helm install webapp webapp-helm --values ${params.values_file} || true"
+                withKubeConfig(clusterName: "${params.clusterName}", contextName: "${params.clusterName}", credentialsId: 'kubeconfig', namespace: "${params.nameSpace}", serverUrl: "${env.kserver}") {
+                    sh "helm upgrade --install webapp webapp-helm --values webapp-helm/$values_file || true"
                 }
             }
                     

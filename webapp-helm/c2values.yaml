@@ -1,10 +1,14 @@
-
+jenkins:
+  clusterName: cluster2
+  nameSpace: ns2
+  kserver: https://192.168.49.2:8443/
+  vaultServer: http://0.0.0.0:8200
 
 app:
-  name: webapp-pod-c2
+  name: webapp-pod-1
   saName: default
   image: jweissig/app:0.0.1
-  containerName: webapp-cluster-2
+  containerName: webapp-cluster-1
   path: /mnt/jksfile
 
 init:
@@ -23,16 +27,14 @@ volumes:
   path: /mnt/jksfile
 
 vault:
-  secretsPath: secret/data/cluster2
+  secretsPath: secret/data/keypair
   vaultRole: cluster2-role
   address: http://external-vault:8200
-  name: vault-database-cluster-2
-  kubernetesMountPath: cluster-b
+  kubernetesMountPath: cluster2
+  policyName: cluster-b-app
   
 externalvault:
   name: external-vault
   port: 8200
   protocol: TCP
-  ip: 192.168.67.1
-
-
+  ip: 192.168.49.1
